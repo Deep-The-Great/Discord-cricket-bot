@@ -13,8 +13,7 @@ from my_functions.summary_board import summary_board
 
 m=None
 db1_client=pymongo.MongoClient(os.getenv("DB2_URL"))
-db_name=db1_client["Challenge"]
-db_collection=db_name['Data']
+
 
 class score_board(commands.Cog):
 	def __init__(self,bot):
