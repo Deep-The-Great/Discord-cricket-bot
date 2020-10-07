@@ -13,16 +13,7 @@ bot.remove_command('help')
 
 db_client=pymongo.MongoClient(os.getenv("DB_URL"))
 db1_client=pymongo.MongoClient(os.getenv("DB2_URL"))
-db_name=db1_client["Challenge"]
-db_collection=db_name['Data']
-db1_name=db1_client['Running_matches']
-db1_collection=db1_name['data']
-db2_name=db_client["about"]
-db2_collection=db2_name["data"]
-db3_name=db1_client["banned_members"]
-db3_collection=db3_name["ids"]
-db4_name=db_client["Logs"]
-db4_collection = db4_name["Channels"]
+
 
 #loading cogs
 for filename in os.listdir("./cogs"):
@@ -31,25 +22,25 @@ for filename in os.listdir("./cogs"):
 @bot.command()
 @commands.guild_only()
 async def confirm_team(ctx):
-	with open('./cache/swap.json','r') as f,pymongo.MongoClient(os.getenv("DB2_URL")) as db1_client,pymongo.MongoClient(os.getenv("DB_URL")) as db_client:
-		d=json.load(f)
-		db_name=db1_client["Challenge"]
-		db_collection=db_name['Data']
-		db2_name=db_client["about"]
-		db2_collection=db2_name["data"]
-		x=db_collection.find_one({"Team1_member_id": ctx.message.author.id})
+	
+	d=json.load(f)
+	db_name=db1_client["Challenge"]
+	db_collection=db_name['Data']
+	db2_name=db_client["about"]
+	db2_collection=db2_name["data"]
+	x=db_collection.find_one({"Team1_member_id": ctx.message.author.id})
+	if x==None:
+		x=db_collection.find_one({"Team2_member_id": ctx.message.author.id})
 		if x==None:
-			x=db_collection.find_one({"Team2_member_id": ctx.message.author.id})
-			if x==None:
-				return
-			if len(x['Team2_data']['Lineup'])!=0:
-				return
-			else:
-				team_name=x['Team2_name']
+			return
+		if len(x['Team2_data']['Lineup'])!=0:
+			return
 		else:
-			if len(x['Team1_data']['Lineup'])!=0:
-				return
-			team_name=x['Team1_name']
+			team_name=x['Team2_name']
+	else:
+		if len(x['Team1_data']['Lineup'])!=0:
+			return
+		team_name=x['Team1_name']
 	Note=""
 	if str(x['_id']) not in d:
 		with open ("./Teams/"+x['league']+".json","r") as f:
@@ -57,9 +48,8 @@ async def confirm_team(ctx):
 			team=team[team_name][:11]
 	else:
 		if str(ctx.author.id) not in d[str(x['_id'])]:
-			with open ("./Teams/"+x['league']+".json","r") as f:
-				team=json.load(f)
-				team=team[team_name][:11]
+			team=json.load(f)
+			team=team[team_name][:11]
 		else:
 			team=d[str(x['_id'])][str(ctx.author.id)]['now'][:11]
 			y=db2_collection.find_one({"id": ctx.author.id})
