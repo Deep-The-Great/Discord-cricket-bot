@@ -10,9 +10,7 @@ import datetime
 import asyncio
 bot=commands.Bot(command_prefix='.')
 bot.remove_command('help')
-os.environ["BOT_TOKEN"]="NTkwNDQzMjk5NzM1NzMyMjI0.XQiTLA.lCZ7h8EEh8Hx1OAPQL_kS2fyq5M"
-os.environ["DB_URL"]="mongodb+srv://Shrikar:shrikar123@cricket.u4p4f.mongodb.net/Cricket_bot_personal?retryWrites=true&w=majority"
-os.environ["DB2_URL"]="mongodb+srv://Shrikar:shrikar123@personal-cricket.ychhm.mongodb.net/Challenge?retryWrites=true&w=majority"
+
 db_client=pymongo.MongoClient(os.getenv("DB_URL"))
 db1_client=pymongo.MongoClient(os.getenv("DB2_URL"))
 db_name=db1_client["Challenge"]
@@ -25,6 +23,7 @@ db3_name=db1_client["banned_members"]
 db3_collection=db3_name["ids"]
 db4_name=db_client["Logs"]
 db4_collection = db4_name["Channels"]
+
 #loading cogs
 for filename in os.listdir("./cogs"):
 	if filename.endswith(".py"):
@@ -86,97 +85,6 @@ async def confirm_team(ctx):
 		db_collection.update_one({"_id":x['_id']},{"$set":{"Team2_data.Lineup": team}})
 	
 	
-@bot.command()
-@commands.guild_only()
-async def swap_player(ctx,swap=None,swap_with=None):
-#default --d_team
-#current --d_now
-
-	with open('./cache/swap.json','r') as f,pymongo.MongoClient(os.getenv("DB2_URL")) as db1_client:
-		d=json.load(f)
-		db_name=db1_client["Challenge"]
-		db_collection=db_name['Data']
-		x=db_collection.find_one({"Team1_member_id": ctx.message.author.id})
-		if x==None:
-			x=db_collection.find_one({"Team2_member_id": ctx.message.author.id})
-			if x==None:
-				return
-			if x['Maximum_overs']!=0:
-				await ctx.send("Can't change your lineup after setting overs.")
-				return
-			else:
-				team_name=x['Team2_name']
-		else:
-			if x['Maximum_overs']!=0:
-				await ctx.send("Can't change your lineup after setting overs.")
-				return
-			team_name=x['Team1_name']
-	if str(x['_id']) not in d:
-		with open ("./Teams/"+x['league']+".json","r") as f:
-			d_details=json.load(f)
-			d_team=d_details[team_name]
-			d_now=d_team
-			to_be_dumped={str(x['_id']):{}}
-	else:
-		d_team=d[str(x['_id'])][str(ctx.message.author.id)]['default']
-		d_now=d[str(x['_id'])][str(ctx.message.author.id)]['now']
-		to_be_dumped=d
-	swap=int(swap)
-	swap_with=int(swap_with)
-	prompt=d_now[swap-1] + " swapped with " + d_now[swap_with-1]
-	d_now[swap-1],d_now[swap_with-1]=d_now[swap_with-1],d_now[swap-1]
-	playing_eleven=d_now[:11]
-	bench=d_now[11:]
-	creds=len(list(set(d_team[:11])-set(d_now[:11])))*200
-	player_list=""
-	bench_list=""
-	for i in range(len(playing_eleven)):
-		player_list+=str(i+1)+". "+playing_eleven[i]+"\n"
-	for i in range(len(bench)):
-		bench_list+=str(i+12)+". "+bench[i]+"\n"
-	embed=discord.Embed(title=f"Team name",description="You can swap players by using `c!swap` command.")
-	embed.add_field(name="Swap done",value=prompt,inline=False)
-	embed.add_field(name="Playing XI",value=player_list,inline=True)
-	embed.add_field(name="Bench players",value=bench_list,inline=True)
-	embed.add_field(name="Credits",value=creds,inline=False)
-	await ctx.send(embed=embed)
-	to_be_dumped[str(x['_id'])][str(ctx.message.author.id)]={"default":d_team,"now":d_now}
-	with open('./cache/swap.json','w') as f:
-		json.dump(to_be_dumped,f)
-
-@bot.command()
-async def match(ctx,*,role=None):
-	if role==None:
-		await ctx.send("`.match role_name`")
-		return
-	l=[]
-	for i in ctx.guild.members:
-		for j in i.roles:
-			if j.id==int(role):
-				l.append(i.name)
-				break
-	if len(l)==0:
-		await ctx.send("Role not found")
-		return
-	random.shuffle(l)
-	k=[[]]
-	p=0
-	b=0
-	countt=0
-	for i in range(0,len(l),2):
-		if p==15:
-			b+=1
-			p=0
-			k.append([])
-		match="`"+l[i]+"`\tvs\t`"+l[i+1]+"`"
-		k[b].append(match)
-		p+=1
-		countt+=1
-	embed=discord.Embed(title=f"PvP List\nNumber of matches : {countt}")
-	for i in range(len(k[0])):
-		embed.add_field(name=f"Match-{i+1}",value=k[0][i],inline=False)
-
-	await ctx.send(embed=embed)
 @bot.event
 async def on_ready():
 	print("Less go")
@@ -247,23 +155,7 @@ async def on_message(message):
 	if bot.user.mentioned_in(message) and message.mention_everyone is False:
 		await channel.send("My prefix is `c!` To learn how to use the bot, use the `c!help` command.")
 	await bot.process_commands(message)
-	
-@bot.command(aliases=["p"])
-@commands.guild_only()
-async def participate(ctx):
-	if ctx.message.channel.id!=739112206028767265:
-		return
-	else:
-		for i in ctx.author.roles:
-			if i.id==739113180059533373:
-				await ctx.send("Looks like you have registered already")
-				return
-		for i in ctx.message.guild.roles:
-			if i.id==739113180059533373:
-				break
-		await ctx.author.add_roles(i)
-		await ctx.send("Registration successfull")
-	
+
 @bot.command()
 @commands.guild_only()
 async def log(ctx,chnl:discord.TextChannel=None):
@@ -293,6 +185,7 @@ async def log(ctx,chnl:discord.TextChannel=None):
 		db4_collection.update_one({},{"$set":{"ids": x["ids"]}})
 		await ctx.send(f"The match logs will be sent to {chnl.mention}")
 		return
+	
 @bot.command()
 @commands.guild_only()
 async def ban(ctx,person:discord.Member=None):
