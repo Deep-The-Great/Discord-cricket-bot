@@ -9,16 +9,7 @@ import json
 import math
 from my_functions.summary_board import summary_board
 
-db_client=pymongo.MongoClient(os.getenv("DB_URL"))
-db1_client=pymongo.MongoClient(os.getenv("DB2_URL"))
-db_name=db1_client["Challenge"]
-db_collection=db_name['Data']
-db1_name=db1_client['Running_matches']
-db1_collection=db1_name['data']
-db2_name=db_client["about"]
-db2_collection=db2_name["data"]
-db4_name=db_client["Logs"]
-db4_collection = db4_name["Channels"]
+
 
 def is_super_over(id,super_over):
 	if str(id) in super_over.keys():
