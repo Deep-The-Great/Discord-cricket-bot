@@ -9,12 +9,7 @@ import json
 import math
 db_client=pymongo.MongoClient(os.getenv("DB_URL"))
 db1_client=pymongo.MongoClient(os.getenv("DB2_URL"))
-db_name=db1_client["Challenge"]
-db_collection=db_name['Data']
-db1_name=db1_client['Running_matches']
-db1_collection=db1_name['data']
-db2_name=db_client["about"]
-db2_collection=db2_name["data"]
+
 class select_team(commands.Cog):
 	def __init__(self,bot):
         	self.bot=bot
